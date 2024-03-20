@@ -1,0 +1,787 @@
+<div class="container-fluid" style="max-width:90%">
+  <hr>
+  <div class="row">
+    <div class="col-md-8 offset-md-3" style="display: flex; justify-content: center; align-items: center;">
+      <!-- link icon -->
+      <img src="assets/laptop.png" width="10%" alt="Laptop">
+      <h1>&nbsp;&nbsp;Laptop&nbsp;Shop</h1>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="row">
+
+    <!-- FACETS for BASELINE condition -->
+    <div class="col-sm-3" *ngIf="setting==1">
+      <!-- Reset all filters button -->
+      <button type="button" class="btn btn-outline-primary btn-sm btn-block" (click)="resetFacets(true, true)" [disabled]="searchFinished || !searchStarted">clear all filters</button>
+      <hr>
+      <div class="col-sm-12" *ngFor="let f of facets; let i = index">
+        <div class="col-sm-12">
+          <div class="row">
+            <h6><b>{{f.name}}</b></h6>
+          </div>
+          <div class="col-sm-12" *ngFor="let fcat of facets[i].categorynames; let ii = index">
+            <input type="checkbox" class="form-check-input" id="checkbox_{{i}}_{{ii}}" (click)="clickfacetoption(i,ii)" [disabled]="searchFinished || !searchStarted || facets[i].categorycounts[ii]<=0" [checked]="facets[i].activecategories[ii]">
+            <label class="form-check-label" for="checkbox_{{i}}_{{ii}}">{{fcat}} <span style="color:grey">  ({{facets[i].categorycounts[ii]}})</span></label>
+          </div>
+          <hr>
+        </div>
+      </div>
+      <hr>
+      <hr>
+      <!-- Reset all filters button -->
+      <button type="button" class="btn btn-outline-primary btn-sm btn-block" (click)="resetFacets(true, true)" [disabled]="searchFinished || !searchStarted">clear all filters</button>
+    </div>
+
+    <!-- FACETS for VAGUE condition -->
+    <div class="col-sm-3" *ngIf="setting==2">
+      <!-- Reset all filters button -->
+      <button type="button" class="btn btn-outline-primary btn-sm btn-block" (click)="resetFacets(true, true)" [disabled]="searchFinished || !searchStarted">clear all filters</button>
+      <hr>
+      <div class="col-sm-12" *ngFor="let f of facetsvague; let i = index">
+        <div class="col-sm-12">
+          <div class="row">
+            <h6><b>{{f.name}}</b> &nbsp;
+              <span data-toggle="tooltip" data-placement="top" title="Grouped according to the assessment of 273 shop users."
+                    *ngIf="facets[i].type=='interval'">
+                <img class="align-top" src="assets/info.png" style="width: 12pt; height: 12pt" alt="more information">
+              </span>
+            </h6>
+
+          </div>
+          <div class="col-sm-12" *ngFor="let fcat of facetsvague[i].categorynames; let ii = index">
+            <input type="checkbox" class="form-check-input" id="checkbox_{{i}}_{{ii}}" (click)="clickfacetoption(i,ii)" [disabled]="searchFinished || !searchStarted || facetsvague[i].categorycounts[ii]<=0" [checked]="facetsvague[i].activecategories[ii]">
+            <label class="form-check-label" for="checkbox_{{i}}_{{ii}}">{{fcat}}<span style="color:grey">  ({{facetsvague[i].categorycounts[ii]}})</span></label>
+          </div>
+          <hr>
+        </div>
+      </div>
+      <hr>
+      <hr>
+      <!-- Reset all filters button -->
+      <button type="button" class="btn btn-outline-primary btn-sm btn-block" (click)="resetFacets(true, true)" [disabled]="searchFinished || !searchStarted">clear all filters</button>
+    </div>
+
+    <!-- FACETS for BASELINE + VAGUE condition -->
+    <div class="col-sm-3" *ngIf="setting==3">
+      <!-- Reset all filters button -->
+      <button type="button" class="btn btn-outline-primary btn-sm btn-block" (click)="resetFacets(true, true)" [disabled]="searchFinished || !searchStarted">clear all filters</button>
+      <hr>
+      <div class="col-sm-10" *ngFor="let f of facets; let i = index">
+        <div class="col-sm-12" *ngIf="f.mapping.length>0">
+          <div class="row">
+            <h6><b>{{f.name}}</b></h6>
+          </div>
+          <div *ngFor="let c of [0,1,2]">
+            <div class="row">
+              <div class="col-sm-1 pl-2" [style.background-color]="categoryColors[c]">&nbsp;</div>
+              <div class="col-sm-9 pl-2" [style.color]="categoryColors[c]"><b>{{facets[i].mappingnames[c]}}:</b></div>
+            </div>
+            <div class="row" *ngFor="let fcat of facets[i].categorynames; let ii = index">
+              <div class="col-sm-1 pl-2" [style.background-color]="categoryColors[c]" *ngIf="f.mapping.length>c && f.mapping[c].includes(ii)">&nbsp;</div>
+              <div class="col-sm-1 pl-2" *ngIf="f.mapping.length>c && f.mapping[c].includes(ii)">&nbsp;</div>
+              <div class="col-sm-8 pl-2" *ngIf="f.mapping.length>c && f.mapping[c].includes(ii)">
+                <input type="checkbox" class="form-check-input" id="checkbox_{{i}}_{{ii}}" (click)="clickfacetoption(i,ii)" [disabled]="searchFinished || !searchStarted || facets[i].categorycounts[ii]<=0" [checked]="facets[i].activecategories[ii]">
+                <label class="form-check-label" for="checkbox_{{i}}_{{ii}}">{{fcat}} <span style="color:grey">  ({{facets[i].categorycounts[ii]}})</span></label>
+              </div>
+            </div>
+          </div>
+          <hr>
+        </div>
+      </div>
+      <hr>
+      <hr>
+      <!-- Reset all filters button -->
+      <button type="button" class="btn btn-outline-primary btn-sm btn-block" (click)="resetFacets(true, true)" [disabled]="searchFinished || !searchStarted">clear all filters</button>
+    </div>
+
+
+    <!-- RESULTS -->
+    <div class="col-sm-8">
+
+      <div class="row d-flex flex-row">
+
+        <!-- Show number of hits -->
+        <div class="col-7">
+          <span *ngIf="results.length==0">
+            Found no results.
+          </span>
+            <span *ngIf="results.length==1">
+            Found<b>&nbsp;{{results.length}}&nbsp;</b>result:
+          </span>
+            <span *ngIf="results.length>1 && resultsNumHits<=results.length">
+            Found<b>&nbsp;{{resultsNumHits}}&nbsp;</b>results:
+          </span>
+            <span *ngIf="results.length>1 && resultsNumHits>results.length">
+            Found<b>&nbsp;{{resultsNumHits}}&nbsp;</b>results, showing top<b>&nbsp;{{results.length}}&nbsp;</b>results:
+          </span>
+        </div>
+
+        <!-- Sort by -->
+        <div class="col-5 d-flex justify-content-end">
+          <div class="col-6">
+            <p class="text-right">sort laptops by:</p>
+          </div>
+          <div class="col-6">
+            <div class="dropdown">
+              <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" [disabled]="searchFinished || !searchStarted">
+                {{sortbyLabel}}
+              </button>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="dropdown-item" (click)="updateSortBy('customer rating (high to low)')">customer rating (high to low)</a>
+                <a class="dropdown-item" (click)="updateSortBy('price (low to high)')">price (low to high)</a>
+                <a class="dropdown-item" (click)="updateSortBy('screen size (high to low)')">screen size (high to low)</a>
+                <a class="dropdown-item" (click)="updateSortBy('storage size (high to low)')">storage size (high to low)</a>
+                <a class="dropdown-item" (click)="updateSortBy('RAM size (high to low)')">RAM size (high to low)</a>
+                <a class="dropdown-item" (click)="updateSortBy('weight (light to heavy)')">weight (light to heavy)</a>
+                <a class="dropdown-item" (click)="updateSortBy('battery life (long to short)')">battery life (long to short)</a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+      <hr>
+
+      <!-- RESULT LIST -->
+	    <div class="row" *ngIf="serverDown">
+	      <p>Products could not be loaded. Please try again in a few seconds.</p>
+	    </div>
+
+      <div class="row" *ngIf="waitingOnServer">
+        <div class="col-md-12" style="display: flex; justify-content: center; align-items: center;">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Refreshing results...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="row" *ngIf="loggingInProcess">
+        <h5>Results are being submitted, please wait...</h5>
+        <div class="col-md-12" style="display: flex; justify-content: center; align-items: center;">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Submitting results...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="row p-2" *ngIf="results.length == 0 && numFilterSelect>0 && !serverDown && !waitingOnServer && !loggingInProcess">
+
+        <div class="col-md-12" style="display: flex; justify-content: center; align-items: center;">
+          None of our laptops match your filter criteria.
+        </div>
+
+        <div class="col-md-12" style="display: flex; justify-content: center; align-items: center;">
+          <b>Please change the filter selection on the left!</b>
+        </div>
+
+      </div>
+
+      <div class="row p-2" *ngIf="numFilterSelect<=0">
+
+        <div class="col-md-12" style="display: flex; justify-content: center; align-items: center;">
+          You did not yet select search criteria.
+        </div>
+
+        <div class="col-md-12" style="display: flex; justify-content: center; align-items: center;">
+          <b>Please use the filter selection on the left to search for a laptop!</b>
+        </div>
+
+        <div class="col-md-12" style="display: flex; justify-content: center; align-items: center;">
+          <img src="assets/arrow_left.png" width="50%" alt="arrow to the left">
+        </div>
+
+      </div>
+
+      <div class="row p-2" *ngIf="results.length>0 && numFilterSelect>0 && !serverDown && !waitingOnServer && !loggingInProcess">
+
+                <!-- SINGLE ITEM -->
+                <div class="col-sm-12 mt-2 mb-2 pt-2 pb-2 bg-light border" style="border-color: #d6dade;" *ngFor="let r of results">
+                     <div>
+                        <div class="row ml-1">
+
+                            <div class="col-sm-3" style="background-position:center;background-size:contain;background-repeat:no-repeat" [ngStyle]="{'background-image': 'url(https://multiweb.gesis.org/vacos3/' + r.sku_original + '.jpg)'}"></div>
+
+                            <div class="col col-sm-9">
+                              <div class="row text-left" *ngIf="!searchFinished" >
+                                <div class="col col-sm-10 pl-3" (click)="setModalLaptop(r)">
+                                  <a class="stretched-link modal-title" data-toggle="modal" data-target="#exampleModal">
+                                    <h5 style="color: #2c7fb8">{{r.titleStandard_original}}</h5>
+                                  </a>
+                                </div>
+                              </div>
+                              <div class="row text-left" *ngIf="searchFinished" >
+                                <div class="col col-sm-10 pl-3">
+                                  <div>
+                                    <h5 style="color: #2c7fb8">{{r.titleStandard_original}}</h5>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="row text-left">
+                                <div class="col col-sm-2 pl-3">
+                                  <span style="font-weight:bold;font-size:130%">&#163;&nbsp;{{r.price_original}}&nbsp;&nbsp;</span>
+                                  <span *ngIf="setting===2 || setting===3" style="color:grey">{{r.price_vagueFront}}</span>
+                                </div>
+                                <div class="row pl-3">
+                                  <div class="col col-sm-10 pl-3">
+                                    <span *ngFor="let ii of [1,2,3,4,5]; let i = index">
+                                      <img *ngIf="r.ratingAvg_filter>=ii" src="assets/star_full.png" width="3%" alt="full star">
+                                      <img *ngIf="r.ratingAvg_filter<ii-0.5" src="assets/star_empty.png" width="3%" alt="full star">
+                                      <img *ngIf="r.ratingAvg_filter>=ii-0.5 && r.ratingAvg_filter<ii" src="assets/star_half.png" width="3%" alt="full star">
+                                    </span>
+                                    <span *ngIf="r.ratingNum_filter>0"><small>&nbsp;({{r.ratingNum_filter}})</small></span>
+                                    <span *ngIf="r.ratingNum_filter<=0"><small>(0)</small></span>
+                                  </div>
+                                  <div class="col col-sm-2">
+                                    <button class="btn btn-sm btn-outline-primary mr-2" role="button" type="button" (click)="finishSearch(r.sku_original)" [disabled]="!searchStarted">
+                                      Choose this laptop
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div class="row pl-3 mt-4">
+                                <div class="col col-10">
+                                <div class="row">
+                                <div class="col col-sm-3">
+                                  <div class="row">
+                                    <h6><b>Storage Size:</b></h6>
+                                  </div>
+                                  <div class="row" *ngIf="r.totalStorageCapacity_original.length>0">
+                                    {{r.totalStorageCapacity_original}}
+                                  </div>
+                                  <div class="row" *ngIf="r.totalStorageCapacity_original.length<=0">
+                                    <p style="color:grey">n/a</p>
+                                  </div>
+                                  <div class="row" *ngIf="(setting===2 || setting===3) && r.totalStorageCapacity_original.length>0">
+                                    <p style="color:grey">{{r.totalStorageCapacity_vagueFront}}</p>
+                                  </div>
+                                </div>
+                                <div class="col col-sm-3">
+                                  <div class="row">
+                                    <h6><b>RAM Size:</b></h6>
+                                  </div>
+                                  <div class="row" *ngIf="r.systemMemoryRam_original.length>0">
+                                    {{r.systemMemoryRam_original}}
+                                  </div>
+                                  <div class="row" *ngIf="r.systemMemoryRam_original.length<=0">
+                                    <p style="color:grey">n/a</p>
+                                  </div>
+                                  <div class="row" *ngIf="(setting===2 || setting===3) && r.systemMemoryRam_original.length>0">
+                                    <p style="color:grey">{{r.systemMemoryRam_vagueFront}}</p>
+                                  </div>
+                                </div>
+                                <div class="col col-sm-3">
+                                  <div class="row">
+                                    <h6><b>Display Size:</b></h6>
+                                  </div>
+                                  <div class="row" *ngIf="r.screenSize_original.length>0">
+                                    {{r.screenSize_original}}
+                                  </div>
+                                  <div class="row" *ngIf="r.screenSize_original.length<=0">
+                                    <p style="color:grey">n/a</p>
+                                  </div>
+                                  <div class="row" *ngIf="(setting===2 || setting===3) && r.screenSize_original.length>0">
+                                    <p style="color:grey">{{r.screenSize_vagueFront}}</p>
+                                  </div>
+                                </div>
+                                <div class="col col-sm-3">
+                                  <div class="row">
+                                    <h6><b>CPU Speed:</b></h6>
+                                  </div>
+                                  <div class="row" *ngIf="r.processorSpeedBase_original.length>0">
+                                    {{r.processorSpeedBase_original}}
+                                  </div>
+                                  <div class="row" *ngIf="r.processorSpeedBase_original.length<=0">
+                                    <p style="color:grey">n/a</p>
+                                  </div>
+                                  <div class="row" *ngIf="(setting===2 || setting===3) && r.processorSpeedBase_original.length>0">
+                                    <p style="color:grey">{{r.processorSpeedBase_vagueFront}}</p>
+                                  </div>
+                                </div>
+                                </div>
+                                </div>
+                              </div>
+
+
+
+<!-- Modal -->
+<div class="modal fade bd-example-modal-xl" *ngIf="!searchFinished || searchStarted" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel" *ngIf="modalLaptop">Laptop Details: {{modalLaptop.screenSize_filter}}" {{modalLaptop.brand_original}} Laptop</h5>
+        <button type="button" class="btn btn-primary" data-dismiss="modal" (click)="closeModal('TOP')">Close</button>
+      </div>
+      <div class="modal-body" *ngIf="modalLaptop">
+
+      <div class="row pl-2 pr-2">
+        <div class="col-5" style="background-position:center;background-size:contain;background-repeat:no-repeat;" [ngStyle]="{'background-image': 'url(https://multiweb.gesis.org/vacos3/' + modalLaptop.sku_original + '.jpg)'}"></div>
+        <div class="col-7">
+          <h5>{{modalLaptop.titleStandard_original}}</h5>
+          <strong>From {{modalLaptop.brand_original}}</strong>
+          <br />
+          <span style="font-weight:bold;font-size:120%">&#163;&nbsp;{{modalLaptop.price_original}}&nbsp;&nbsp;</span>
+          <span *ngIf="setting===2 || setting===3" style="color:grey">{{modalLaptop.price_vagueFront}}</span>
+          <br />
+          <br />
+          <span *ngFor="let ii of [1,2,3,4,5]; let i = index">
+            <img *ngIf="modalLaptop.ratingAvg_filter>=ii" src="assets/star_full.png" width="3%" alt="full star">
+            <img *ngIf="modalLaptop.ratingAvg_filter<ii-0.5" src="assets/star_empty.png" width="3%" alt="full star">
+            <img *ngIf="modalLaptop.ratingAvg_filter>=ii-0.5 && modalLaptop.ratingAvg_filter<ii" src="assets/star_half.png" width="3%" alt="full star">
+          </span>
+          <span *ngIf="modalLaptop.ratingNum_filter>0">&nbsp;(based on {{modalLaptop.ratingNum_filter}} reviews)</span>
+          <br />
+          <br />
+
+            <!-- UEBERSICHT -->
+            <!-- <strong>Product Details:</strong> -->
+            <br />
+            <table class="table table-striped" style="table-layout:fixed;width:100%;">
+                <tbody>
+                    <tr>
+                        <td><b class="mr-2">Brand</b></td>
+                        <td *ngIf="modalLaptop.brand_original.length>0">{{modalLaptop.brand_original}}</td>
+                        <td *ngIf="modalLaptop.brand_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="(setting===2 || setting===3) && modalLaptop.brand_vagueFront!='n/a'"><p style="color:grey">{{modalLaptop.brand_vagueFront}} reputation</p></td>
+                        <td *ngIf="(setting===2 || setting===3) && modalLaptop.brand_vagueFront=='n/a'"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr>
+                        <td><b class="mr-2">Operating System</b></td>
+                        <td *ngIf="modalLaptop.operatingSystem_original.length>0">{{modalLaptop.operatingSystem_original}}</td>
+                        <td *ngIf="modalLaptop.operatingSystem_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="(setting===2 || setting===3)"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr>
+                        <td><b class="mr-2">Screen Size</b></td>
+                        <td *ngIf="modalLaptop.screenSize_original.length>0">{{modalLaptop.screenSize_original}}</td>
+                        <td *ngIf="modalLaptop.screenSize_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="(setting===2 || setting===3) && modalLaptop.screenSize_vagueFront!='n/a'"><p style="color:grey">{{modalLaptop.screenSize_vagueFront}}</p></td>
+                        <td *ngIf="(setting===2 || setting===3) && modalLaptop.screenSize_vagueFront=='n/a'"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr>
+                        <td><b class="mr-2">Hard Drive Type</b></td>
+                        <td *ngIf="modalLaptop.storageType_original.length>0">{{modalLaptop.storageType_original}}</td>
+                        <td *ngIf="modalLaptop.storageType_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr>
+                        <td><b class="mr-2">Hard Drive Size</b></td>
+                        <td *ngIf="modalLaptop.totalStorageCapacity_original.length>0">{{modalLaptop.totalStorageCapacity_original}}</td>
+                        <td *ngIf="modalLaptop.totalStorageCapacity_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr>
+                        <td><b class="mr-2">RAM Size</b></td>
+                        <td *ngIf="modalLaptop.systemMemoryRam_original.length>0">{{modalLaptop.systemMemoryRam_original}}</td>
+                        <td *ngIf="modalLaptop.systemMemoryRam_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="(setting===2 || setting===3) && modalLaptop.systemMemoryRam_vagueFront!='n/a'"><p style="color:grey">{{modalLaptop.systemMemoryRam_vagueFront}}</p></td>
+                        <td *ngIf="(setting===2 || setting===3) && modalLaptop.systemMemoryRam_vagueFront=='n/a'"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr>
+                        <td><b class="mr-2">Processor Manufacturer</b></td>
+                        <td *ngIf="modalLaptop.processorBrand_original.length>0">{{modalLaptop.processorBrand_original}}</td>
+                        <td *ngIf="modalLaptop.processorBrand_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr>
+                        <td><b class="mr-2">Processor Cores</b></td>
+                        <td *ngIf="modalLaptop.processorCores_filter.toString().length>0 && modalLaptop.processorCores_filter>0">{{modalLaptop.processorCores_filter}}</td>
+                        <td *ngIf="modalLaptop.processorCores_filter.toString().length<=0 || modalLaptop.processorCores_filter<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr>
+                        <td><b class="mr-2">Processor Speed</b></td>
+                        <td *ngIf="modalLaptop.processorSpeedBase_original.length>0">{{modalLaptop.processorSpeedBase_original}}</td>
+                        <td *ngIf="modalLaptop.processorSpeedBase_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="(setting===2 || setting===3) && modalLaptop.processorSpeedBase_vagueFront!='n/a'"><p style="color:grey">{{modalLaptop.processorSpeedBase_vagueFront}}</p></td>
+                        <td *ngIf="(setting===2 || setting===3) && modalLaptop.processorSpeedBase_vagueFront=='n/a'"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr>
+                        <td><b class="mr-2">Casing Color</b></td>
+                        <td *ngIf="modalLaptop.color_original.length>0">{{modalLaptop.color_original}}</td>
+                        <td *ngIf="modalLaptop.color_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="(setting===2 || setting===3)"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr>
+                        <td><b class="mr-2">Weight</b></td>
+                        <td *ngIf="modalLaptop.productWeight_original.length>0">{{modalLaptop.productWeight_original}}</td>
+                        <td *ngIf="modalLaptop.productWeight_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="(setting===2 || setting===3) && modalLaptop.productWeight_vagueFront!='n/a'"><p style="color:grey">{{modalLaptop.productWeight_vagueFront}}</p></td>
+                        <td *ngIf="(setting===2 || setting===3) && modalLaptop.productWeight_vagueFront=='n/a'"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr>
+                        <td><b class="mr-2">Battery Life</b></td>
+                        <td *ngIf="modalLaptop.batteryLife_original.length>0">{{modalLaptop.batteryLife_original}}</td>
+                        <td *ngIf="modalLaptop.batteryLife_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="(setting===2 || setting===3) && modalLaptop.batteryLife_vagueFront!='n/a'"><p style="color:grey">{{modalLaptop.batteryLife_vagueFront}}</p></td>
+                        <td *ngIf="(setting===2 || setting===3) && modalLaptop.batteryLife_vagueFront=='n/a'"><p style="color:grey"></p></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+      </div>
+
+      <!-- PRODUKTBESCHREIBUNG -->
+      <div class="row pl-2 pr-2">
+        <div class="col-12" *ngIf="modalLaptop.longDescription_original.length>0">
+          <br />
+          <br />
+          <p>{{modalLaptop.longDescription_original}}</p>
+      </div>
+
+      <!-- GENERAL PRODUCT INFORMATION -->
+      <div class="row pl-2 pr-2">
+        <div class="col-12">
+            <br />
+            <h5><p style="color:#2c7fb8">General Product Information:</p></h5>
+            <br />
+            <table class="table table-striped" style="table-layout:fixed;width:100%;">
+                <tbody>
+                    <tr>
+                        <td><b class="mr-2">Brand</b></td>
+                        <td *ngIf="modalLaptop.brand_original.length>0">{{modalLaptop.brand_original}}</td>
+                        <td *ngIf="modalLaptop.brand_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="(setting===2 || setting===3) && modalLaptop.brand_vagueFront!='n/a'"><p style="color:grey">{{modalLaptop.brand_vagueFront}} reputation</p></td>
+                        <td *ngIf="(setting===2 || setting===3) && modalLaptop.brand_vagueFront=='n/a'"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr>
+                        <td><b class="mr-2">Model Number</b></td>
+                        <td *ngIf="modalLaptop.modelNumber_original.length>0">{{modalLaptop.modelNumber_original}}</td>
+                        <td *ngIf="modalLaptop.modelNumber_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr>
+                        <td><b class="mr-2">Operating System</b></td>
+                        <td *ngIf="modalLaptop.operatingSystem_original.length>0">{{modalLaptop.operatingSystem_original}}</td>
+                        <td *ngIf="modalLaptop.operatingSystem_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr *ngIf="modalLaptop.operatingSystemArchitecture_original.length>0">
+                        <td><b class="mr-2">Operating System Architecture</b></td>
+                        <td>{{modalLaptop.operatingSystemArchitecture_original}}</td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr *ngIf="modalLaptop.yearOfRelease_original.length>0">
+                        <td><b class="mr-2">Release Date</b></td>
+                        <td>{{modalLaptop.yearOfRelease_original}}</td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr *ngIf="modalLaptop.preowned_vagueFront.length>0">
+                        <td><b class="mr-2">Second Hand</b></td>
+                        <td>{{modalLaptop.preowned_vagueFront}}</td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+      </div>
+
+      <!-- SCREEN -->
+      <div class="row pl-2 pr-2">
+        <div class="col-12">
+            <br />
+            <h5><p style="color:#2c7fb8">Screen:</p></h5>
+            <br />
+            <table class="table table-striped" style="table-layout:fixed;width:100%;">
+                <tbody>
+                    <tr>
+                        <td><b class="mr-2">Screen Size</b></td>
+                        <td *ngIf="modalLaptop.screenSize_original.length>0">{{modalLaptop.screenSize_original}}</td>
+                        <td *ngIf="modalLaptop.screenSize_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="(setting===2 || setting===3) && modalLaptop.screenSize_vagueFront!='n/a'"><p style="color:grey">{{modalLaptop.screenSize_vagueFront}} reputation</p></td>
+                        <td *ngIf="(setting===2 || setting===3) && modalLaptop.screenSize_vagueFront=='n/a'"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr>
+                        <td><b class="mr-2">Screen Type</b></td>
+                        <td *ngIf="modalLaptop.screenType_original.length>0">{{modalLaptop.screenType_original}}</td>
+                        <td *ngIf="modalLaptop.screenType_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr>
+                        <td><b class="mr-2">Screen Resolution</b></td>
+                        <td *ngIf="modalLaptop.screenResolution_original.length>0">{{modalLaptop.screenResolution_original}}</td>
+                        <td *ngIf="modalLaptop.screenResolution_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr>
+                        <td><b class="mr-2">Touchscreen</b></td>
+                        <td *ngIf="modalLaptop.touchScreen_original.length>0">{{modalLaptop.touchScreen_original}}</td>
+                        <td *ngIf="modalLaptop.touchScreen_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+      </div>
+
+      <!-- HARD DRIVE -->
+      <div class="row pl-2 pr-2">
+        <div class="col-12">
+            <br />
+            <h5><p style="color:#2c7fb8">Hard Drive:</p></h5>
+            <br />
+            <table class="table table-striped" style="table-layout:fixed;width:100%;">
+                <tbody>
+                    <tr>
+                        <td><b class="mr-2">Total Storage Capacity</b></td>
+                        <td *ngIf="modalLaptop.totalStorageCapacity_original.length>0">{{modalLaptop.totalStorageCapacity_original}}</td>
+                        <td *ngIf="modalLaptop.totalStorageCapacity_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="(setting===2 || setting===3) && modalLaptop.totalStorageCapacity_vagueFront!='n/a'"><p style="color:grey">{{modalLaptop.totalStorageCapacity_vagueFront}} reputation</p></td>
+                        <td *ngIf="(setting===2 || setting===3) && modalLaptop.totalStorageCapacity_vagueFront=='n/a'"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr *ngIf="modalLaptop.hardDriveCapacity_filter>0">
+                        <td><b class="mr-2">HDD Size</b></td>
+                        <td>{{modalLaptop.hardDriveCapacity_original}}</td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr *ngIf="modalLaptop.solidStateDriveCapacity_filter>0">
+                        <td><b class="mr-2">SSD Size</b></td>
+                        <td>{{modalLaptop.solidStateDriveCapacity_original}}</td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr *ngIf="modalLaptop.eMmcCapacity_filter>0">
+                        <td><b class="mr-2">eMMC Size</b></td>
+                        <td>{{modalLaptop.eMmcCapacity_original}}</td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr>
+                        <td><b class="mr-2">Hard Drive Type</b></td>
+                        <td *ngIf="modalLaptop.storageType_original.length>0">{{modalLaptop.storageType_original}}</td>
+                        <td *ngIf="modalLaptop.storageType_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+      </div>
+
+      <!-- CPU -->
+      <div class="row pl-2 pr-2">
+        <div class="col-12">
+            <br />
+            <h5><p style="color:#2c7fb8">Processor (CPU):</p></h5>
+            <br />
+            <table class="table table-striped" style="table-layout:fixed;width:100%;">
+                <tbody>
+                    <tr>
+                        <td><b class="mr-2">Processor Brand</b></td>
+                        <td *ngIf="modalLaptop.processorBrand_original.length>0">{{modalLaptop.processorBrand_original}}</td>
+                        <td *ngIf="modalLaptop.processorBrand_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr>
+                        <td><b class="mr-2">Processor Model</b></td>
+                        <td *ngIf="modalLaptop.processorModel_original.length>0">{{modalLaptop.processorModel_original}}</td>
+                        <td *ngIf="modalLaptop.processorModel_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr>
+                        <td><b class="mr-2">Processor Cores</b></td>
+                        <td *ngIf="modalLaptop.processorCores_original.length>0">{{modalLaptop.processorCores_original}}</td>
+                        <td *ngIf="modalLaptop.processorCores_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr>
+                        <td><b class="mr-2">Processor Speed (Max)</b></td>
+                        <td *ngIf="modalLaptop.processorSpeedBase_original.length>0">{{modalLaptop.processorSpeedBase_original}}</td>
+                        <td *ngIf="modalLaptop.processorSpeedBase_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+      </div>
+
+      <!-- CPU -->
+      <div class="row pl-2 pr-2">
+        <div class="col-12">
+            <br />
+            <h5><p style="color:#2c7fb8">Working Memory (RAM):</p></h5>
+            <br />
+            <table class="table table-striped" style="table-layout:fixed;width:100%;">
+                <tbody>
+                    <tr>
+                        <td><b class="mr-2">RAM Size</b></td>
+                        <td *ngIf="modalLaptop.systemMemoryRam_original.length>0">{{modalLaptop.systemMemoryRam_original}}</td>
+                        <td *ngIf="modalLaptop.systemMemoryRam_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr *ngIf="modalLaptop.systemMemoryRamType_original.length<0 && modalLaptop.systemMemoryRamType_original!='n/a'">
+                        <td><b class="mr-2">RAM Type</b></td>
+                        <td>{{modalLaptop.systemMemoryRamType_original}}</td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr *ngIf="modalLaptop.systemMemoryRamSpeed_filter>0">
+                        <td><b class="mr-2">RAM Speed</b></td>
+                        <td>{{modalLaptop.systemMemoryRamSpeed_original}}</td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+      </div>
+
+      <!-- CPU -->
+      <div class="row pl-2 pr-2">
+        <div class="col-12">
+            <br />
+            <h5><p style="color:#2c7fb8">Connectivity:</p></h5>
+            <br />
+            <table class="table table-striped" style="table-layout:fixed;width:100%;">
+                <tbody>
+                    <tr>
+                        <td><b class="mr-2">WiFi</b></td>
+                        <td *ngIf="modalLaptop.internetConnectivity_original.length>0">{{modalLaptop.internetConnectivity_original}}</td>
+                        <td *ngIf="modalLaptop.internetConnectivity_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr>
+                        <td><b class="mr-2">USB Ports</b></td>
+                        <td *ngIf="modalLaptop.numberOfUsbPortsTotal_original.length>0">{{modalLaptop.numberOfUsbPortsTotal_original}}</td>
+                        <td *ngIf="modalLaptop.numberOfUsbPortsTotal_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                    <tr>
+                        <td><b class="mr-2">Bluetooth</b></td>
+                        <td *ngIf="modalLaptop.bluetoothEnabled_original.length>0">{{modalLaptop.bluetoothEnabled_original}}</td>
+                        <td *ngIf="modalLaptop.bluetoothEnabled_original.length<=0"><p style="color:grey">no information available</p></td>
+                        <td *ngIf="setting===2 || setting===3"><p style="color:grey"></p></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+      </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal" (click)="closeModal('BOTTOM')">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- END Modal -->
+
+
+
+                        </div>
+                    </div>
+                    <hr>
+                </div>
+            </div>
+        </div>
+
+        <!-- Show more hits -->
+        <div class="col-7" *ngIf="results.length>1 && resultsNumHits>results.length">
+          <button type="button" class="btn btn-outline-primary btn-sm btn-block" (click)="extendResultList()" [disabled]="searchFinished || !searchStarted">show more</button>
+        </div>
+
+    </div>
+</div>
+
+
+  </div>
+
+
+
+  <!-- Jump to top Button -->
+  <div class="col-md-2" *ngIf="!searchFinished">
+    <a class="btn btn-primary" style="position:fixed;bottom:2%;right:2%;width:10%" (click)="scrollTop()" role="button" type="button">
+      <img src="assets/back-to-top.png" width="20%" alt="back to top">
+    </a>
+  </div>
+
+  <!-- Finish Search Button -->
+  <!--
+  <div class="col-md-2" *ngIf="!searchFinished">
+    <button class="btn btn-danger" style="position:fixed;bottom:2%;right:2%;width:10%" role="button" type="button" (click)="finishSearch()">
+      finish search
+    </button>
+  </div>
+  -->
+
+  <!-- Final Fitness Evaluation -->
+  <div class="col-md-12 priotop p-4 bg-success text-white rounded" style="position:fixed;top:10%;width:80%" *ngIf="searchFinished">
+
+    <h3>Looking at the final laptop list:</h3>
+
+    <div class="col-md-8">
+      <div class="row">
+        How well do those laptops fit your needs?
+      </div>
+      <div class="row">
+        <span>
+          not at all&nbsp;&nbsp;
+        </span>
+        <span *ngFor="let i of ['1 - not at all','2','3','4','5 - very well']; let ii = index">
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="inlineRadioOptionsFITNESS" id="inlineRadioFITNESS{{ii}}" value="option{{ii}}" (click)="setFitness(ii+1)">
+            <label class="form-check-label" for="inlineRadioFITNESS{{ii}}"></label>
+          </div>
+        </span>
+        <span>
+          very well
+        </span>
+      </div>
+
+      <br>
+
+      <div class="row">
+        How satisfied are you with the final laptop list?
+      </div>
+      <div class="row">
+        <span>
+          not at all&nbsp;&nbsp;
+        </span>
+        <span *ngFor="let i of ['1 - not at all','2','3','4','5 - very well']; let ii = index">
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="inlineRadioOptionsSATISFACTION" id="inlineRadioSATISFACTION{{ii}}" value="option{{ii}}" (click)="setSatisfaction(ii+1)">
+            <label class="form-check-label" for="inlineRadioSATISFACTION{{ii}}"></label>
+          </div>
+        </span>
+        <span>
+          very satisfied
+        </span>
+      </div>
+
+      <br>
+
+      <!-- Submit Return Button -->
+      <div class="row" *ngIf="searchFinished">
+        <button type="button" class="btn btn-outline-light" (click)="submit()" [disabled]="resultsFitness<=0 || resultsSatisfaction<=0">
+          submit response and return to questionnaire
+        </button>
+      </div>
+
+      <br>
+
+      <!-- Go back to search Button -->
+      <div class="row" *ngIf="searchFinished">
+        <button type="button" class="btn btn-outline-light" (click)="backToSearch()">
+          go back and continue laptop search
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Scenario Popover -->
+  <div class="fadeMe" *ngIf="!searchStarted || searchFinished"></div>
+  <div class="col-md-12 priotop p-4 bg-danger text-white rounded" style="position:fixed;top:10%;width:80%" *ngIf="!searchStarted && !searchFinished">
+    <div>
+      <h3>Scenario:</h3>
+      <h3>Imagine your laptop broke down. Now, you are searching for a new laptop.</h3>
+    </div>
+    <br>
+    <div>
+      <button type="button" class="btn btn-outline-light" (click)="startSearch()">
+        start search
+      </button>
+    </div>
+  </div>
+
+</div>
